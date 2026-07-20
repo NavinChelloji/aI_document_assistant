@@ -1,94 +1,160 @@
-import React from 'react';
-import { ArrowLeft, Upload, MessageSquare, FileText, Settings, Activity, File as FileIcon, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Upload, MessageSquare, FileText, Activity } from 'lucide-react';
 import { Button } from '../../../ui/button/Button';
-import { Card } from '../../../ui/card/Card';
+import { workspaceService } from '../services/workspace.api';
+import type { Workspace as WorkspaceType } from '../../../types/workspace';
+import { Spinner } from '../../../ui/spinner/Spinner';
+import { useAbortController } from '../../../hooks/useAbortController';
+
+// Import our new components
+import { DocumentLibrary } from '../../documents/pages/DocumentLibrary';
+import { Upload as DocumentUpload } from '../../documents/pages/Upload';
+import { Chat } from '../../chat/pages/Chat';
 
 const Workspace = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const workspaceId = parseInt(id || "0", 10);
+
+  const [workspace, setWorkspace] = useState<WorkspaceType | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'overview' | 'documents' | 'upload' | 'chat'>('chat');
+  const { getSignal } = useAbortController();
+
+  useEffect(() => {
+    if (!workspaceId) return;
+
+    const fetchWorkspace = async () => {
+      try {
+        setIsLoading(true);
+        const data = await workspaceService.getWorkspace(workspaceId, getSignal());
+        setWorkspace(data);
+      } catch (err: any) {
+        if (err.name !== "CanceledError") {
+          console.error("Failed to fetch workspace");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchWorkspace();
+  }, [workspaceId, getSignal]);
+
+  if (isLoading) {
+    return <div className="flex justify-center p-12"><Spinner /></div>;
+  }
+
+  if (!workspace) {
+    return <div className="p-12 text-center text-[var(--color-error-600)]">Workspace not found</div>;
+  }
+
   return (
     <div className="flex h-[calc(100vh-8rem)] gap-8">
       {/* Left Sidebar - Workspace Nav */}
-      <div className="w-56 space-y-6">
-        <button className="flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">
+      <div className="w-56 flex-shrink-0 space-y-6 overflow-y-auto">
+        <button 
+          onClick={() => navigate('/')}
+          className="flex items-center text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text-default)] transition-colors"
+        >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Dashboard
         </button>
         
         <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-4 px-3">HR Policies</h2>
+          <h2 className="text-xl font-bold text-[var(--text-default)] mb-4 px-3 truncate" title={workspace.name}>
+            {workspace.name}
+          </h2>
           <nav className="space-y-1">
-            <a href="#" className="flex items-center px-3 py-2.5 text-sm font-medium bg-blue-50 text-blue-700 rounded-lg">
+            <button 
+              onClick={() => setActiveTab('overview')}
+              className={`w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${activeTab === 'overview' ? 'bg-[var(--color-primary-500)]/10 text-[var(--color-primary-600)]' : 'text-[var(--text-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-default)]'}`}
+            >
               <Activity className="mr-3 h-5 w-5" />
               Overview
-            </a>
-            <a href="#" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
+            </button>
+            <button 
+              onClick={() => setActiveTab('documents')}
+              className={`w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${activeTab === 'documents' ? 'bg-[var(--color-primary-500)]/10 text-[var(--color-primary-600)]' : 'text-[var(--text-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-default)]'}`}
+            >
               <FileText className="mr-3 h-5 w-5" />
               Documents
-            </a>
-            <a href="#" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
+            </button>
+            <button 
+              onClick={() => setActiveTab('chat')}
+              className={`w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${activeTab === 'chat' ? 'bg-[var(--color-primary-500)]/10 text-[var(--color-primary-600)]' : 'text-[var(--text-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-default)]'}`}
+            >
               <MessageSquare className="mr-3 h-5 w-5" />
-              Chats
-            </a>
-            <a href="#" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
-              <Settings className="mr-3 h-5 w-5" />
-              Settings
-            </a>
+              AI Assistant
+            </button>
           </nav>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 space-y-8 overflow-y-auto pr-4">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">HR Policies</h1>
-          <p className="text-gray-500 mt-1">24 Documents • 2.1 GB</p>
-          <p className="text-gray-600 mt-4 max-w-2xl">All HR related policies, guidelines and manuals.</p>
-          
-          <div className="flex gap-4 mt-6">
-            <Button className="rounded-lg">
-              <Upload className="mr-2 h-4 w-4" />
-              Upload Document
-            </Button>
-            <Button variant="outline" className="rounded-lg bg-white">
-              <MessageSquare className="mr-2 h-4 w-4" />
-              New Chat
-            </Button>
-          </div>
-        </div>
-
-        {/* Top Documents */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Top Documents</h2>
-            <Button variant="ghost" className="text-sm text-blue-600 h-auto p-0 hover:bg-transparent hover:text-blue-700">View all <ChevronRight className="h-4 w-4 ml-1" /></Button>
-          </div>
-          
-          <Card className="overflow-hidden">
-            <div className="divide-y divide-gray-100">
-              {[
-                { name: 'Employee_Handbook.pdf', time: 'Uploaded 2 hours ago', size: '4.2 MB', icon: 'text-red-500' },
-                { name: 'Leave_Policy_2024.pdf', time: 'Uploaded 1 day ago', size: '2.1 MB', icon: 'text-red-500' },
-                { name: 'Code_of_Conduct.pdf', time: 'Uploaded 3 days ago', size: '1.8 MB', icon: 'text-red-500' },
-                { name: 'Performance_Review_Guide.pdf', time: 'Uploaded 5 days ago', size: '3.5 MB', icon: 'text-red-500' },
-                { name: 'Travel_Policy.pdf', time: 'Uploaded 1 week ago', size: '2.7 MB', icon: 'text-red-500' },
-              ].map((doc) => (
-                <div key={doc.name} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer group">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-red-50 p-2 rounded-lg">
-                      <FileIcon className={`h-6 w-6 ${doc.icon}`} />
-                    </div>
-                    <span className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">{doc.name}</span>
-                  </div>
-                  <div className="flex items-center gap-8 text-sm text-gray-500">
-                    <span className="w-40 hidden md:inline-block">{doc.time}</span>
-                    <span className="w-16 text-right">{doc.size}</span>
-                    <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-gray-500" />
-                  </div>
-                </div>
-              ))}
+      {/* Main Content Area */}
+      <div className="flex-1 min-w-0 overflow-y-auto">
+        {activeTab === 'overview' && (
+          <div className="space-y-8 pr-4">
+            <div>
+              <h1 className="text-3xl font-bold text-[var(--text-default)]">{workspace.name}</h1>
+              <p className="text-[var(--text-muted)] mt-4 max-w-2xl">{workspace.description || "No description provided."}</p>
+              
+              <div className="flex gap-4 mt-6">
+                <Button onClick={() => setActiveTab('upload')} className="rounded-lg">
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload Document
+                </Button>
+                <Button onClick={() => setActiveTab('chat')} variant="outline" className="rounded-lg bg-[var(--bg-surface)] text-[var(--text-default)]">
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  Ask AI
+                </Button>
+              </div>
             </div>
-          </Card>
-        </div>
+            
+            <div className="mt-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-[var(--text-default)]">Recent Documents</h2>
+                <Button variant="ghost" onClick={() => setActiveTab('documents')} className="text-sm text-[var(--color-primary-600)] h-auto p-0 hover:bg-transparent hover:text-[var(--color-primary-500)]">
+                  View all Library
+                </Button>
+              </div>
+              <DocumentLibrary workspaceId={workspaceId} />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'upload' && (
+          <div className="pr-4 py-6">
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-[var(--text-default)]">Upload Documents</h1>
+              <p className="text-[var(--text-muted)] mt-1">Add new PDF documents to your workspace index.</p>
+            </div>
+            <DocumentUpload workspaceId={workspaceId} onUploadSuccess={() => setActiveTab('documents')} />
+          </div>
+        )}
+
+        {activeTab === 'documents' && (
+          <div className="pr-4 py-6">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h1 className="text-2xl font-bold text-[var(--text-default)]">Document Library</h1>
+                <p className="text-[var(--text-muted)] mt-1">Manage all indexed documents.</p>
+              </div>
+              <Button onClick={() => setActiveTab('upload')}>
+                <Upload className="w-4 h-4 mr-2" />
+                Upload New
+              </Button>
+            </div>
+            <DocumentLibrary workspaceId={workspaceId} />
+          </div>
+        )}
+
+        {activeTab === 'chat' && (
+          <div className="h-full">
+            <Chat workspaceId={workspaceId} />
+          </div>
+        )}
       </div>
     </div>
   );

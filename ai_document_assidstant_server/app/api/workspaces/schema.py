@@ -1,19 +1,22 @@
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
 class WorkspaceCreate(BaseModel):
     name: str
+    description: Optional[str] = None
 
 class WorkspaceUpdate(BaseModel):
     name: Optional[str] = None
+    description: Optional[str] = None
 
 class WorkspaceResponse(BaseModel):
-    id: int
+    id: UUID
     name: str
-    owner_id: int
+    description: Optional[str] = None
+    user_id: UUID
     created_at: datetime
-    updated_at: Optional[datetime]
 
     class Config:
         from_attributes = True

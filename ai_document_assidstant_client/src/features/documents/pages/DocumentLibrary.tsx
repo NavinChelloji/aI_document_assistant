@@ -1,96 +1,99 @@
-import React from 'react';
-import { Search, ChevronDown, List, Grid, MoreVertical, FileText, File as FileIcon } from 'lucide-react';
-import { Input } from '../../../ui/input/Input';
-import { Button } from '../../../ui/button/Button';
-import { Badge } from '../../../ui/badge/Badge';
+import React, { useEffect, useState } from "react";
+import { FileText, Trash2 } from "lucide-react";
+import { documentService } from "../services/document.api";
+import type { Document } from "../../../types/document";
+import { Spinner } from "../../../ui/spinner/Spinner";
+import { useAbortController } from "../../../hooks/useAbortController";
 
-const documents = [
-  { id: 1, name: 'Employee_Handbook.pdf', workspace: 'HR Policies', type: 'PDF', size: '4.2 MB', status: 'Processed', time: '2 hours ago', iconColor: 'text-red-500' },
-  { id: 2, name: 'Leave_Policy_2024.pdf', workspace: 'HR Policies', type: 'PDF', size: '2.1 MB', status: 'Processed', time: '1 day ago', iconColor: 'text-red-500' },
-  { id: 3, name: 'Service_Agreement.docx', workspace: 'Legal', type: 'DOCX', size: '1.3 MB', status: 'Processed', time: '2 days ago', iconColor: 'text-blue-500' },
-  { id: 4, name: 'Financial_Report_Q1.xlsx', workspace: 'Finance', type: 'XLSX', size: '2.8 MB', status: 'Processed', time: '3 days ago', iconColor: 'text-green-500' },
-  { id: 5, name: 'Research_Paper.pdf', workspace: 'Research', type: 'PDF', size: '3.6 MB', status: 'Processed', time: '5 days ago', iconColor: 'text-red-500' },
-];
+export const DocumentLibrary = ({ workspaceId }: { workspaceId: number }) => {
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const { getSignal } = useAbortController();
 
-const DocumentLibrary = () => {
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        setIsLoading(true);
+        const data = await documentService.getDocuments(workspaceId, getSignal());
+        setDocuments(data);
+      } catch (err: any) {
+        if (err.name !== "CanceledError") {
+          setError("Failed to load documents.");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDocuments();
+  }, [workspaceId, getSignal]);
+
+  const handleDelete = async (id: number) => {
+    try {
+      await documentService.deleteDocument(id);
+      setDocuments(documents.filter(doc => doc.id !== id));
+    } catch (err) {
+      alert("Failed to delete document.");
+    }
+  };
+
+  if (isLoading) {
+    return <div className="flex justify-center p-8"><Spinner /></div>;
+  }
+
+  if (error) {
+    return <div className="text-[var(--color-error-600)] p-4">{error}</div>;
+  }
+
+  if (documents.length === 0) {
+    return (
+      <div className="text-center p-8 text-[var(--text-muted)] bg-[var(--bg-subtle)] rounded-lg border border-dashed border-[var(--border-default)]">
+        <FileText className="w-12 h-12 mx-auto mb-3 text-[var(--text-muted)] opacity-50" />
+        <p>No documents found in this workspace.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">Documents</h1>
-        
-        <div className="flex items-center gap-3">
-          <div className="w-64">
-            <Input 
-              icon={<Search className="h-4 w-4" />} 
-              placeholder="Search documents..." 
-              className="bg-white border-gray-200"
-            />
-          </div>
-          
-          <Button variant="outline" className="text-gray-700">
-            All Types <ChevronDown className="ml-2 h-4 w-4 text-gray-500" />
-          </Button>
-          
-          <Button variant="outline" className="text-gray-700">
-            All Status <ChevronDown className="ml-2 h-4 w-4 text-gray-500" />
-          </Button>
-          
-          <div className="flex bg-gray-100 p-1 rounded-lg border border-gray-200">
-            <button className="p-1.5 bg-white shadow-sm rounded-md text-gray-900">
-              <List className="h-4 w-4" />
-            </button>
-            <button className="p-1.5 rounded-md text-gray-500 hover:text-gray-900">
-              <Grid className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-gray-600">
-            <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 font-medium">
-              <tr>
-                <th className="px-6 py-4">Name</th>
-                <th className="px-6 py-4">Workspace</th>
-                <th className="px-6 py-4">Type</th>
-                <th className="px-6 py-4">Size</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Uploaded</th>
-                <th className="px-6 py-4 text-right"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {documents.map((doc) => (
-                <tr key={doc.id} className="hover:bg-gray-50 transition-colors group cursor-pointer">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <FileIcon className={`h-5 w-5 ${doc.iconColor}`} />
-                      <span className="font-medium text-gray-900">{doc.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">{doc.workspace}</td>
-                  <td className="px-6 py-4">{doc.type}</td>
-                  <td className="px-6 py-4">{doc.size}</td>
-                  <td className="px-6 py-4">
-                    <Badge variant="success">{doc.status}</Badge>
-                  </td>
-                  <td className="px-6 py-4">{doc.time}</td>
-                  <td className="px-6 py-4 text-right">
-                    <button className="text-gray-400 hover:text-gray-700 opacity-0 group-hover:opacity-100 transition-opacity p-1">
-                      <MoreVertical className="h-5 w-5" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <div className="bg-[var(--bg-surface)] rounded-lg shadow-sm border border-[var(--border-default)] overflow-hidden transition-colors">
+      <table className="min-w-full divide-y divide-[var(--border-default)]">
+        <thead className="bg-[var(--bg-subtle)]">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">Name</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">Size</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">Uploaded</th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="bg-[var(--bg-surface)] divide-y divide-[var(--border-default)]">
+          {documents.map((doc) => (
+            <tr key={doc.id} className="hover:bg-[var(--bg-subtle)] transition-colors">
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="flex items-center">
+                  <FileText className="flex-shrink-0 h-5 w-5 text-[var(--text-muted)] mr-3" />
+                  <div className="text-sm font-medium text-[var(--text-default)]">{doc.filename}</div>
+                </div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-muted)]">
+                {(doc.size_bytes / 1024 / 1024).toFixed(2)} MB
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-muted)]">
+                {new Date(doc.created_at).toLocaleDateString()}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <button
+                  onClick={() => handleDelete(doc.id)}
+                  className="text-[var(--color-error-600)] hover:text-[var(--color-error-500)] bg-red-50 dark:bg-red-900/20 p-2 rounded-md hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+                  title="Delete Document"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
-
-export default DocumentLibrary;

@@ -14,8 +14,14 @@ from app.database.base import Base
 from app.database.models.user import User
 from app.database.models.workspace import Workspace
 from app.database.models.document import Document
+from app.database.models.document_version import DocumentVersion
+from app.database.models.document_chunk import DocumentChunk
 from app.database.models.chat import ChatSession
 from app.database.models.message import ChatMessage
+from app.database.models.setting import Setting
+from app.database.models.notification import Notification
+from app.database.models.refresh_token import RefreshToken
+from app.database.models.audit_log import AuditLog
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -23,7 +29,9 @@ config = context.config
 
 settings = get_settings()
 # Override sqlalchemy.url with the one from our settings
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+# Alembic uses configparser which interprets % as interpolation; we must escape it as %%
+alembic_db_url = str(settings.DATABASE_URL).replace('%', '%%')
+config.set_main_option("sqlalchemy.url", alembic_db_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

@@ -1,29 +1,31 @@
 export interface Citation {
-  documentId: string;
+  documentId: number;
   documentName: string;
   pageNumber: number;
 }
 
 export interface Message {
-  id: string;
+  id: number;
+  session_id: number;
   content: string;
-  sender: 'user' | 'ai';
-  timestamp: string;
+  role: 'user' | 'ai';
+  created_at: string;
   citations?: Citation[];
 }
 
 export interface ChatSession {
-  id: string;
+  id: number;
+  workspace_id: number;
   title: string;
-  updatedAt: string;
-  messages: Message[];
+  created_at: string;
+  messages?: Message[];
 }
 
 export interface ChatState {
   sessions: ChatSession[];
-  activeSessionId: string | null;
+  activeSessionId: number | null;
   setSessions: (sessions: ChatSession[]) => void;
-  setActiveSession: (id: string) => void;
-  addMessage: (sessionId: string, message: Message) => void;
+  setActiveSession: (id: number) => void;
+  addMessage: (sessionId: number, message: Message) => void;
   createSession: (session: ChatSession) => void;
 }
