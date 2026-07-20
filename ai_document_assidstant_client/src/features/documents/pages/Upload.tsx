@@ -1,177 +1,137 @@
-import React, { useState } from 'react';
-import { ArrowLeft, UploadCloud, File as FileIcon, X, CheckCircle2, Loader2, FileText, LayoutGrid, Database, Save } from 'lucide-react';
-import { Button } from '../../../ui/button/Button';
-import { Card, CardContent } from '../../../ui/card/Card';
+import React, { useState, useRef } from "react";
+import { Upload as UploadIcon, File, X, AlertCircle } from "lucide-react";
+import { Button } from "../../../ui/button/Button";
+import { documentService } from "../services/document.api";
+import { useAbortController } from "../../../hooks/useAbortController";
 
-const Upload = () => {
-  const [isProcessing, setIsProcessing] = useState(false);
+// Assuming we pass workspaceId as a prop or get it from context/url
+export const Upload = ({ workspaceId, onUploadSuccess }: { workspaceId: number, onUploadSuccess?: () => void }) => {
+  const [file, setFile] = useState<File | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { getSignal } = useAbortController();
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFileSelection(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      handleFileSelection(e.target.files[0]);
+    }
+  };
+
+  const handleFileSelection = (selectedFile: File) => {
+    setError(null);
+    if (selectedFile.type !== "application/pdf") {
+      setError("Only PDF files are supported at this time.");
+      return;
+    }
+    setFile(selectedFile);
+  };
+
+  const handleUpload = async () => {
+    if (!file) return;
+
+    setIsUploading(true);
+    setError(null);
+
+    try {
+      await documentService.uploadDocument(workspaceId, file, getSignal());
+      setFile(null);
+      if (onUploadSuccess) onUploadSuccess();
+    } catch (err: any) {
+      if (err.name !== "CanceledError") {
+        setError(err.response?.data?.detail || "Failed to upload document. Please try again.");
+      }
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center gap-4">
-        <button className="p-2 text-gray-500 hover:text-gray-900 rounded-full hover:bg-gray-100 transition-colors">
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-        <h1 className="text-2xl font-bold text-gray-900">
-          {isProcessing ? 'Processing Documents' : 'Upload Documents'}
-        </h1>
+    <div className="w-full max-w-2xl mx-auto">
+      <div 
+        className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
+          isDragging ? 'border-[var(--color-primary-500)] bg-[var(--color-primary-500)]/10' : 'border-[var(--border-default)] hover:border-[var(--text-muted)] bg-[var(--bg-subtle)]'
+        }`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        {!file ? (
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="p-4 bg-[var(--bg-surface)] rounded-full shadow-sm">
+              <UploadIcon className="w-8 h-8 text-[var(--color-primary-500)]" />
+            </div>
+            <div>
+              <p className="text-lg font-medium text-[var(--text-default)]">Drag & drop your PDF here</p>
+              <p className="text-sm text-[var(--text-muted)] mt-1">or click to browse from your computer</p>
+            </div>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              className="hidden" 
+              accept=".pdf,application/pdf"
+              onChange={handleFileInput}
+            />
+            <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+              Browse Files
+            </Button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center space-y-6">
+            <div className="flex items-center p-4 bg-[var(--bg-surface)] rounded-lg shadow-sm w-full max-w-md border border-[var(--border-default)]">
+              <div className="p-2 bg-red-100 dark:bg-red-900/20 rounded-lg mr-4">
+                <File className="w-6 h-6 text-[var(--color-error-600)]" />
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <p className="text-sm font-medium text-[var(--text-default)] truncate">{file.name}</p>
+                <p className="text-xs text-[var(--text-muted)]">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+              </div>
+              <button 
+                onClick={() => setFile(null)}
+                className="p-1 hover:bg-[var(--bg-subtle)] rounded-full transition-colors ml-4 text-[var(--text-muted)] hover:text-[var(--text-default)]"
+                disabled={isUploading}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <Button 
+              onClick={handleUpload} 
+              isLoading={isUploading}
+              className="w-full max-w-md"
+            >
+              {isUploading ? "Uploading & Processing..." : "Upload to Workspace"}
+            </Button>
+          </div>
+        )}
       </div>
 
-      {!isProcessing ? (
-        <>
-          {/* Drag & Drop Area */}
-          <div className="border-2 border-dashed border-gray-300 rounded-2xl bg-gray-50 p-12 text-center hover:bg-gray-100 transition-colors">
-            <div className="bg-white h-16 w-16 rounded-full shadow-sm flex items-center justify-center mx-auto mb-4">
-              <UploadCloud className="h-8 w-8 text-blue-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Drag & drop documents here</h3>
-            <p className="text-gray-500 mb-6">or</p>
-            <Button onClick={() => setIsProcessing(true)}>Browse Files</Button>
-            <p className="text-sm text-gray-400 mt-6">
-              Supported formats: PDF, DOCX, TXT, PPTX, XLSX, PNG, JPG
-            </p>
-          </div>
-
-          {/* Upload Queue */}
-          <div>
-            <h3 className="text-sm font-medium text-gray-900 mb-4 px-1">Upload Queue</h3>
-            <Card>
-              <div className="divide-y divide-gray-100">
-                {[
-                  { name: 'Employee_Handbook.pdf', size: '2.4 MB', progress: 100, status: 'done', icon: 'text-red-500' },
-                  { name: 'Leave_Policy_2024.pdf', size: '1.8 MB', progress: 100, status: 'done', icon: 'text-red-500' },
-                  { name: 'Onboarding_Process.docx', size: '3.2 MB', progress: 60, status: 'uploading', icon: 'text-blue-500' },
-                  { name: 'Code_of_Conduct.pdf', size: '2.1 MB', progress: 0, status: 'pending', icon: 'text-red-500' },
-                ].map((doc) => (
-                  <div key={doc.name} className="p-4 flex items-center gap-4">
-                    <FileIcon className={`h-8 w-8 ${doc.icon} bg-gray-50 p-1.5 rounded-lg`} />
-                    
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-sm text-gray-900">{doc.name}</span>
-                        <span className="text-xs font-medium text-gray-500">{doc.size}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <div className="h-1.5 flex-1 bg-gray-100 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full transition-all duration-500 ${doc.status === 'done' ? 'bg-green-500' : 'bg-blue-600'}`}
-                            style={{ width: `${doc.progress}%` }}
-                          />
-                        </div>
-                        <span className="text-xs font-medium text-gray-600 w-8 text-right">
-                          {doc.status === 'pending' ? 'Pending' : `${doc.progress}%`}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="w-6 flex justify-end">
-                      {doc.status === 'done' && <CheckCircle2 className="h-5 w-5 text-green-500" />}
-                      {doc.status === 'uploading' && <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />}
-                      {doc.status === 'pending' && <button className="text-gray-400 hover:text-gray-600"><X className="h-5 w-5" /></button>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </div>
-        </>
-      ) : (
-        <>
-          <p className="text-gray-500 mb-8 -mt-4">We are extracting text and preparing your document for AI chat.</p>
-          
-          <div className="flex flex-col md:flex-row gap-8">
-            {/* Steps */}
-            <div className="flex-1 bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-              <div className="flex items-center gap-3 mb-8 p-3 bg-blue-50 rounded-xl border border-blue-100">
-                <FileIcon className="h-6 w-6 text-red-500" />
-                <span className="font-semibold text-blue-900">Employee_Handbook.pdf</span>
-              </div>
-              
-              <div className="relative border-l-2 border-gray-100 ml-4 space-y-8 pb-4">
-                {/* Step 1 */}
-                <div className="relative pl-6">
-                  <div className="absolute -left-[9px] bg-green-500 h-4 w-4 rounded-full border-4 border-white shadow-sm flex items-center justify-center">
-                    <CheckCircle2 className="h-6 w-6 text-green-500 absolute" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 flex items-center gap-2">Uploaded</h4>
-                    <p className="text-sm text-gray-500">File uploaded successfully</p>
-                  </div>
-                </div>
-
-                {/* Step 2 */}
-                <div className="relative pl-6">
-                  <div className="absolute -left-[9px] bg-green-500 h-4 w-4 rounded-full border-4 border-white shadow-sm flex items-center justify-center">
-                    <CheckCircle2 className="h-6 w-6 text-green-500 absolute" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 flex items-center gap-2">Extracting Text</h4>
-                    <p className="text-sm text-gray-500">Extracting text from document</p>
-                  </div>
-                </div>
-
-                {/* Step 3 */}
-                <div className="relative pl-6">
-                  <div className="absolute -left-[9px] bg-blue-600 h-4 w-4 rounded-full border-4 border-white shadow-sm flex items-center justify-center">
-                    <div className="h-2 w-2 bg-blue-600 rounded-full animate-ping"></div>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-blue-600 flex items-center gap-2">Chunking</h4>
-                    <p className="text-sm text-blue-600/80">Splitting into small chunks</p>
-                  </div>
-                </div>
-
-                {/* Step 4 */}
-                <div className="relative pl-6 opacity-50">
-                  <div className="absolute -left-[9px] bg-gray-200 h-4 w-4 rounded-full border-4 border-white shadow-sm"></div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">Generating Embeddings</h4>
-                    <p className="text-sm text-gray-500">Creating embeddings for each chunk</p>
-                  </div>
-                </div>
-
-                {/* Step 5 */}
-                <div className="relative pl-6 opacity-50">
-                  <div className="absolute -left-[9px] bg-gray-200 h-4 w-4 rounded-full border-4 border-white shadow-sm"></div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">Saving to Vector Database</h4>
-                    <p className="text-sm text-gray-500">Storing embeddings in database</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Animation / Graphic */}
-            <div className="flex-1 bg-gray-50 rounded-2xl border border-gray-200 flex items-center justify-center p-12 relative overflow-hidden">
-              <div className="text-center space-y-6 relative z-10">
-                <FileText className="h-20 w-20 text-gray-300 mx-auto" />
-                <div className="space-y-2">
-                  <p className="text-gray-500 font-medium">Please wait while we process your document...</p>
-                  <div className="w-64 h-1.5 bg-gray-200 rounded-full overflow-hidden mx-auto">
-                    <div className="h-full bg-blue-600 w-3/4 rounded-full relative">
-                      <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-400">75%</p>
-                </div>
-              </div>
-
-              <div className="absolute bottom-6 left-6 right-6">
-                <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-3">
-                  <div className="bg-blue-100 p-1.5 rounded-lg text-blue-600 mt-0.5"><Database className="h-4 w-4" /></div>
-                  <div>
-                    <h4 className="text-sm font-semibold text-blue-900">Tip: You can close this page.</h4>
-                    <p className="text-xs text-blue-700">We'll notify you when it's ready.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
+      {error && (
+        <div className="mt-4 flex items-center p-4 bg-red-50 dark:bg-red-900/20 text-[var(--color-error-600)] rounded-lg border border-[var(--color-error-600)]/20">
+          <AlertCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+          <p className="text-sm">{error}</p>
+        </div>
       )}
     </div>
   );
 };
-
-export default Upload;

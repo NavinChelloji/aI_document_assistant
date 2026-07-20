@@ -1,16 +1,56 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 @theme {
-  --color-primary-500: #2563eb; /* blue-600 */
-  --color-secondary: #374151; /* gray-700 */
-  --color-success: #16a34a; /* green-600 */
-  --color-warning: #f59e0b; /* amber-500 */
-  --color-error: #dc2626; /* red-600 */
+  --color-bg-default: var(--bg-default);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-subtle: var(--bg-subtle);
+  
+  --color-text-default: var(--text-default);
+  --color-text-muted: var(--text-muted);
+  --color-text-inverse: var(--text-inverse);
+
+  --color-border-default: var(--border-default);
+  --color-border-hover: var(--border-hover);
+  
+  --color-primary-500: #2563eb; 
+  --color-primary-600: #1d4ed8; 
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
   
   --font-primary: "Inter", system-ui, sans-serif;
 }
 
+:root {
+  --bg-default: #f9fafb;     /* gray-50 */
+  --bg-surface: #ffffff;     /* white */
+  --bg-subtle: #f3f4f6;      /* gray-100 */
+  
+  --text-default: #111827;   /* gray-900 */
+  --text-muted: #6b7280;     /* gray-500 */
+  --text-inverse: #ffffff;   /* white */
+  
+  --border-default: #e5e7eb; /* gray-200 */
+  --border-hover: #d1d5db;   /* gray-300 */
+}
+
+.dark {
+  --bg-default: #0f172a;     /* slate-900 */
+  --bg-surface: #1e293b;     /* slate-800 */
+  --bg-subtle: #334155;      /* slate-700 */
+  
+  --text-default: #f8fafc;   /* slate-50 */
+  --text-muted: #94a3b8;     /* slate-400 */
+  --text-inverse: #0f172a;   /* slate-900 */
+  
+  --border-default: #334155; /* slate-700 */
+  --border-hover: #475569;   /* slate-600 */
+}
+
 body {
   font-family: var(--font-primary);
-  background-color: #f9fafb;
+  background-color: var(--bg-default);
+  color: var(--text-default);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }

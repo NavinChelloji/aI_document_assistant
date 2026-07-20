@@ -1,15 +1,16 @@
 export interface Workspace {
-  id: string;
+  id: number;
   name: string;
-  documentCount: number;
-  initials: string;
-  color: string;
+  description?: string;
+  documentCount?: number;
+  initials?: string;
+  color?: string;
 }
 
 export interface WorkspaceState {
   workspaces: Workspace[];
-  activeWorkspaceId: string | null;
+  activeWorkspaceId: number | null;
   setWorkspaces: (workspaces: Workspace[]) => void;
-  setActiveWorkspace: (id: string) => void;
+  setActiveWorkspace: (id: number) => void;
   addWorkspace: (workspace: Workspace) => void;
 }

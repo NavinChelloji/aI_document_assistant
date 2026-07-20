@@ -25,10 +25,10 @@ const navItems = [
 
 export const Sidebar = () => {
   return (
-    <div className="flex h-full w-64 flex-col bg-white border-r border-gray-200">
+    <div className="flex h-full w-64 flex-col bg-[var(--bg-surface)] border-r border-[var(--border-default)] transition-colors">
       <div className="flex h-16 items-center px-6 mb-4">
-        <Bot className="h-8 w-8 text-blue-600 mr-3" />
-        <span className="text-xl font-bold text-gray-900 tracking-tight">AI Doc Assistant</span>
+        <Bot className="h-8 w-8 text-[var(--color-primary-500)] mr-3" />
+        <span className="text-xl font-bold text-[var(--text-default)] tracking-tight">AI Doc Assistant</span>
       </div>
       
       <div className="flex-1 overflow-y-auto py-4">
@@ -41,8 +41,8 @@ export const Sidebar = () => {
                 cn(
                   'flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors',
                   isActive
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'bg-[var(--color-primary-500)]/10 text-[var(--color-primary-600)]'
+                    : 'text-[var(--text-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-default)]'
                 )
               }
             >
@@ -53,15 +53,15 @@ export const Sidebar = () => {
         </nav>
       </div>
       
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t border-[var(--border-default)] transition-colors">
         <NavLink
           to="/settings"
           className={({ isActive }) =>
             cn(
               'flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors',
               isActive
-                ? 'bg-blue-50 text-blue-700'
-                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                ? 'bg-[var(--color-primary-500)]/10 text-[var(--color-primary-600)]'
+                : 'text-[var(--text-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-default)]'
             )
           }
         >

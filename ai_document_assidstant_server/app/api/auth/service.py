@@ -15,8 +15,8 @@ async def create_user(db: AsyncSession, user_in: UserCreate) -> User:
             detail="Email already registered"
         )
     
-    hashed_password = get_password_hash(user_in.password)
-    db_user = User(email=user_in.email, hashed_password=hashed_password)
+    password_hash = get_password_hash(user_in.password)
+    db_user = User(name=user_in.name, email=user_in.email, password_hash=password_hash)
     db.add(db_user)
     await db.commit()
     await db.refresh(db_user)
@@ -26,7 +26,7 @@ async def authenticate_user(db: AsyncSession, email: str, password: str):
     result = await db.execute(select(User).where(User.email == email))
     user = result.scalars().first()
     
-    if not user or not verify_password(password, user.hashed_password):
+    if not user or not verify_password(password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",

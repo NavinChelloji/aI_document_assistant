@@ -1,4 +1,5 @@
 from typing import List
+from uuid import UUID
 from fastapi import UploadFile, HTTPException, status, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -10,8 +11,8 @@ from app.background_jobs.document_indexing import index_document_task
 
 async def upload_document(
     db: AsyncSession, 
-    workspace_id: int, 
-    user_id: int, 
+    workspace_id: UUID, 
+    user_id: UUID, 
     file: UploadFile, 
     background_tasks: BackgroundTasks
 ) -> Document:
@@ -19,16 +20,16 @@ async def upload_document(
     await get_workspace(db, workspace_id, user_id)
     
     # Save file to disk
-    relative_path = await save_upload_file(file, workspace_id)
+    relative_path = await save_upload_file(file, str(workspace_id))
     
     # Save metadata to DB
     size_bytes = file.size if file.size else 0
     
     db_document = Document(
-        filename=file.filename or "unknown",
-        file_path=relative_path,
-        content_type=file.content_type or "application/octet-stream",
-        size_bytes=size_bytes,
+        file_name=file.filename or "unknown",
+        storage_path=relative_path,
+        file_type=file.content_type or "application/octet-stream",
+        file_size=size_bytes,
         workspace_id=workspace_id
     )
     
@@ -41,14 +42,14 @@ async def upload_document(
     
     return db_document
 
-async def get_documents(db: AsyncSession, workspace_id: int, user_id: int) -> List[Document]:
+async def get_documents(db: AsyncSession, workspace_id: UUID, user_id: UUID) -> List[Document]:
     # Validate workspace ownership
     await get_workspace(db, workspace_id, user_id)
     
     result = await db.execute(select(Document).where(Document.workspace_id == workspace_id))
-    return result.scalars().all()
+    return list(result.scalars().all())
 
-async def get_document(db: AsyncSession, document_id: int, user_id: int) -> Document:
+async def get_document(db: AsyncSession, document_id: UUID, user_id: UUID) -> Document:
     # Need to join with Workspace to ensure user owns it
     # For simplicity, fetch doc, then validate workspace
     result = await db.execute(select(Document).where(Document.id == document_id))
@@ -62,11 +63,11 @@ async def get_document(db: AsyncSession, document_id: int, user_id: int) -> Docu
     
     return document
 
-async def delete_document_service(db: AsyncSession, document_id: int, user_id: int) -> None:
+async def delete_document_service(db: AsyncSession, document_id: UUID, user_id: UUID) -> None:
     document = await get_document(db, document_id, user_id)
     
     # Remove from local storage
-    delete_file(document.file_path)
+    delete_file(document.storage_path)
     
     # Remove from DB
     await db.delete(document)

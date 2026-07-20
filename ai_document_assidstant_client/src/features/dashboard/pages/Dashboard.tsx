@@ -1,136 +1,86 @@
-import React from 'react';
-import { Plus, Folders, FileText, MessageSquare, HardDrive, File as FileIcon, ChevronRight } from 'lucide-react';
-import { Button } from '../../../ui/button/Button';
-import { Card, CardContent } from '../../../ui/card/Card';
-import { Badge } from '../../../ui/badge/Badge';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { Plus, Folder } from "lucide-react";
+import { workspaceService } from "../../workspace/services/workspace.api";
+import { useWorkspaceStore } from "../../../store/workspace.store";
+import { Button } from "../../../ui/button/Button";
+import { Card, CardHeader, CardTitle, CardDescription } from "../../../ui/card/Card";
+import { Spinner } from "../../../ui/spinner/Spinner";
+import { useAbortController } from "../../../hooks/useAbortController";
 
-const Dashboard = () => {
+export const Dashboard = () => {
+  const { workspaces, setWorkspaces } = useWorkspaceStore();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const { getSignal } = useAbortController();
+
+  useEffect(() => {
+    const fetchWorkspaces = async () => {
+      try {
+        setIsLoading(true);
+        const data = await workspaceService.getWorkspaces(getSignal());
+        setWorkspaces(data);
+      } catch (err: any) {
+        if (err.name !== "CanceledError") {
+          setError("Failed to load workspaces.");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchWorkspaces();
+  }, [setWorkspaces, getSignal]);
+
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            Welcome back, John! <span className="text-xl">👋</span>
-          </h1>
-          <p className="text-gray-500 mt-1">Here's what's happening with your documents.</p>
+          <h2 className="text-2xl font-bold tracking-tight text-[var(--text-default)]">Your Workspaces</h2>
+          <p className="text-[var(--text-muted)] mt-1">Manage your projects and documents here.</p>
         </div>
-        <Button className="rounded-lg">
-          <Plus className="mr-2 h-4 w-4" />
+        <Button>
+          <Plus className="w-4 h-4 mr-2" />
           New Workspace
         </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="bg-purple-100 p-3 rounded-xl">
-              <Folders className="h-6 w-6 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500">Workspaces</p>
-              <p className="text-2xl font-bold text-gray-900">6</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="bg-blue-100 p-3 rounded-xl">
-              <FileText className="h-6 w-6 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500">Documents</p>
-              <p className="text-2xl font-bold text-gray-900">128</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="bg-green-100 p-3 rounded-xl">
-              <MessageSquare className="h-6 w-6 text-green-600" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500">Chats</p>
-              <p className="text-2xl font-bold text-gray-900">342</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="bg-gray-100 p-3 rounded-xl">
-              <HardDrive className="h-6 w-6 text-gray-600" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500">Storage</p>
-              <p className="text-xl font-bold text-gray-900">2.4 <span className="text-sm text-gray-500 font-medium">GB / 10 GB</span></p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Workspaces */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Recent Workspaces</h2>
-          <Button variant="ghost" className="text-sm text-blue-600">View all <ChevronRight className="h-4 w-4 ml-1" /></Button>
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <Spinner />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[
-            { initials: 'H', bg: 'bg-pink-100', text: 'text-pink-600', title: 'HR Policies', count: 24 },
-            { initials: 'L', bg: 'bg-green-100', text: 'text-green-600', title: 'Legal', count: 18 },
-            { initials: 'F', bg: 'bg-teal-100', text: 'text-teal-600', title: 'Finance', count: 32 },
-            { initials: 'R', bg: 'bg-blue-100', text: 'text-blue-600', title: 'Research', count: 14 }
-          ].map((ws) => (
-            <Card key={ws.title} className="hover:border-blue-300 transition-colors cursor-pointer">
-              <CardContent className="p-4 flex items-center gap-4">
-                <div className={`${ws.bg} ${ws.text} h-12 w-12 rounded-full flex items-center justify-center font-bold text-lg`}>
-                  {ws.initials}
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">{ws.title}</h3>
-                  <p className="text-sm text-gray-500">{ws.count} Documents</p>
-                </div>
-              </CardContent>
-            </Card>
+      ) : error ? (
+        <div className="bg-red-50 text-[var(--color-error-600)] p-4 rounded-md">{error}</div>
+      ) : workspaces.length === 0 ? (
+        <div className="text-center py-16 px-4 sm:px-6 lg:px-8 border-2 border-dashed border-[var(--border-default)] rounded-xl">
+          <Folder className="mx-auto h-12 w-12 text-[var(--text-muted)]" />
+          <h3 className="mt-2 text-sm font-semibold text-[var(--text-default)]">No workspaces</h3>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">Get started by creating a new workspace.</p>
+          <div className="mt-6">
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              New Workspace
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {workspaces.map((workspace) => (
+            <Link key={workspace.id} to={`/workspace/${workspace.id}`} className="block group">
+              <Card className="h-full transition-shadow hover:shadow-md border-[var(--border-default)] bg-[var(--bg-surface)]">
+                <CardHeader>
+                  <CardTitle className="text-lg text-[var(--text-default)] group-hover:text-[var(--color-primary-500)] transition-colors">
+                    {workspace.name}
+                  </CardTitle>
+                  <CardDescription className="mt-2 text-[var(--text-muted)]">
+                    {workspace.description || "No description provided."}
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
           ))}
         </div>
-      </div>
-
-      {/* Recent Documents */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Recent Documents</h2>
-          <Button variant="ghost" className="text-sm text-blue-600">View all <ChevronRight className="h-4 w-4 ml-1" /></Button>
-        </div>
-        <Card>
-          <div className="divide-y divide-gray-100">
-            {[
-              { name: 'Employee_Handbook.pdf', ws: 'HR Policies', time: 'Uploaded 2 hours ago' },
-              { name: 'Leave_Policy_2024.pdf', ws: 'HR Policies', time: 'Uploaded 1 day ago' },
-              { name: 'Service_Agreement.docx', ws: 'Legal', time: 'Uploaded 2 days ago' },
-            ].map((doc) => (
-              <div key={doc.name} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className="bg-red-50 p-2 rounded-lg">
-                    <FileIcon className="h-6 w-6 text-red-500" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-900">{doc.name}</h4>
-                    <p className="text-sm text-gray-500">{doc.ws} • {doc.time}</p>
-                  </div>
-                </div>
-                <Badge variant="success">Processed</Badge>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
+      )}
     </div>
   );
 };
-
-export default Dashboard;

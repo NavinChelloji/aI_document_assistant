@@ -1,28 +1,32 @@
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
+from uuid import UUID
 
 class ChatSessionCreate(BaseModel):
     title: str
-    workspace_id: int
+    workspace_id: UUID
 
 class ChatSessionResponse(BaseModel):
-    id: int
+    id: UUID
     title: str
-    workspace_id: int
+    workspace_id: UUID
     created_at: datetime
 
     class Config:
         from_attributes = True
 
 class ChatMessageCreate(BaseModel):
-    content: str
+    question: str
 
 class ChatMessageResponse(BaseModel):
-    id: int
-    session_id: int
-    role: str
-    content: str
+    id: UUID
+    session_id: UUID
+    question: str
+    answer: str
+    model: Optional[str]
+    token_usage: Optional[int]
+    response_time_ms: Optional[int]
     created_at: datetime
 
     class Config:
