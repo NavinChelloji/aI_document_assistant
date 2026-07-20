@@ -46,10 +46,14 @@ export const Login = () => {
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <h3 className="text-xl font-medium text-[var(--text-default)]">Sign in to your account</h3>
+      <div className="text-left mb-8">
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center space-x-2">
+          <span>Welcome Back!</span>
+          <span role="img" aria-label="wave">👋</span>
+        </h3>
+        <p className="text-sm text-gray-500 mt-2">Sign in to continue</p>
       </div>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {error && (
           <div className="p-3 text-sm text-[var(--color-error-600)] bg-red-50 dark:bg-red-900/20 rounded-md">
             {error}
@@ -57,6 +61,7 @@ export const Login = () => {
         )}
         <Input
           label="Email address"
+          placeholder="Enter your email"
           type="email"
           error={errors.email?.message}
           {...register("email", { 
@@ -67,21 +72,42 @@ export const Login = () => {
             }
           })}
         />
-        <Input
-          label="Password"
-          type="password"
-          error={errors.password?.message}
-          {...register("password", { 
-            required: "Password is required" 
-          })}
-        />
-        <Button type="submit" className="w-full" isLoading={isLoading}>
+        <div>
+          <div className="flex justify-between items-center mb-1">
+             <label className="block text-sm font-medium text-[var(--text-default)]">Password</label>
+             <Link to="/forgot-password" className="text-xs font-medium text-blue-600 hover:text-blue-500">
+               Forgot password?
+             </Link>
+          </div>
+          <Input
+            placeholder="Enter your password"
+            type="password"
+            error={errors.password?.message}
+            {...register("password", { 
+              required: "Password is required" 
+            })}
+          />
+        </div>
+        
+        <div className="flex items-center">
+          <input
+            id="remember-me"
+            name="remember-me"
+            type="checkbox"
+            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+          />
+          <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
+            Remember me
+          </label>
+        </div>
+
+        <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 py-2.5 text-white" isLoading={isLoading}>
           Sign in
         </Button>
       </form>
-      <div className="text-center text-sm">
+      <div className="text-center text-sm pt-4">
         <span className="text-[var(--text-muted)]">Don't have an account? </span>
-        <Link to="/register" className="font-medium text-[var(--color-primary-600)] hover:text-[var(--color-primary-500)]">
+        <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
           Sign up
         </Link>
       </div>

@@ -6,8 +6,14 @@ import { PrivateRoute } from "./PrivateRoute"
 import { Login } from "../features/auth/pages/Login"
 import { Register } from "../features/auth/pages/Register"
 
-// Placeholder component for Dashboard
-const Dashboard = () => <div className="p-4"><h1 className="text-2xl font-bold">Dashboard</h1><p>Welcome to AI Document Assistant</p></div>
+import { Dashboard } from "../features/dashboard/pages/Dashboard"
+import { WorkspaceView } from "../features/workspace/pages/WorkspaceView"
+import { UploadDocuments } from "../features/documents/pages/UploadDocuments"
+import { ProcessingStatus } from "../features/documents/pages/ProcessingStatus"
+import { DocumentChat } from "../features/chat/pages/DocumentChat"
+import { SourceViewer } from "../features/documents/pages/SourceViewer"
+import { DocumentLibrary } from "../features/documents/pages/DocumentLibrary"
+import { Settings } from "../features/settings/pages/Settings"
 
 export const AppRoutes = () => {
   return (
@@ -21,14 +27,26 @@ export const AppRoutes = () => {
       {/* Protected Routes */}
       <Route element={<PrivateRoute />}>
         <Route element={<MainLayout />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/workspaces" element={<div className="p-4">Workspaces Component pending...</div>} />
-          <Route path="/settings" element={<div className="p-4">Settings Component pending...</div>} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/workspaces" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/workspace/:id" element={<WorkspaceView />} />
+          
+          <Route path="/documents" element={<DocumentLibrary />} />
+          <Route path="/documents/upload" element={<UploadDocuments />} />
+          <Route path="/documents/:id/processing" element={<ProcessingStatus />} />
+          <Route path="/documents/:id/view" element={<SourceViewer />} />
+          <Route path="/workspace/:id/documents" element={<DocumentLibrary />} />
+          
+          <Route path="/chat" element={<DocumentChat />} />
+          <Route path="/chat/:id" element={<DocumentChat />} />
+          
+          <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>
 
       {/* Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   )
 }
