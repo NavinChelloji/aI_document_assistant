@@ -13,6 +13,9 @@ from app.database.base import Base
 # Import models here so Alembic can discover them
 from app.database.models.user import User
 from app.database.models.workspace import Workspace
+from app.database.models.document import Document
+from app.database.models.chat import ChatSession
+from app.database.models.message import ChatMessage
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
