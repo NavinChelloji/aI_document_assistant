@@ -53,4 +53,37 @@ body {
   background-color: var(--bg-default);
   color: var(--text-default);
   transition: background-color 0.2s ease, color 0.2s ease;
+  /* Prevent horizontal overflow on mobile */
+  overflow-x: hidden;
+}
+
+/* iOS momentum scrolling for overflow containers */
+.overflow-y-auto,
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Ensure min tap target on mobile (WCAG 2.5.5) */
+@media (max-width: 640px) {
+  button, a {
+    min-height: 36px;
+  }
+}
+
+/* Safe area insets for notched phones */
+@supports (padding: max(0px)) {
+  .main-content {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
 }

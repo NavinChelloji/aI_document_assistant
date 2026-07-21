@@ -1,68 +1,95 @@
 import * as React from "react"
-import { Outlet, Link, useNavigate } from "react-router-dom"
-import { LogOut, Home, FolderOpen, Settings } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Outlet, useLocation, useNavigate } from "react-router-dom"
+import { Menu, X, Bell } from "lucide-react"
+import { Sidebar } from "./Sidebar"
 import { useAuthStore } from "../store/auth.store"
-import { authService } from "../features/auth/services/auth.api"
 
 export const MainLayout = () => {
-  const navigate = useNavigate();
-  const { logout } = useAuthStore();
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const location = useLocation()
+  const { user } = useAuthStore()
 
-  const handleLogout = async () => {
-    try {
-      await authService.logout();
-    } catch (e) {
-      console.error(e);
-    } finally {
-      logout();
-      navigate('/login');
-    }
-  }
+  // Close sidebar on route change (mobile)
+  useEffect(() => { setSidebarOpen(false) }, [location.pathname])
+
+  // Derive page title from path
+  const pageTitle = (() => {
+    const p = location.pathname
+    if (p.startsWith("/dashboard")) return "Dashboard"
+    if (p.startsWith("/workspaces")) return "Workspaces"
+    if (p.startsWith("/workspace/")) return "Workspace"
+    if (p.startsWith("/documents")) return "Documents"
+    if (p.startsWith("/chat")) return "AI Chat"
+    if (p.startsWith("/settings")) return "Settings"
+    return "AI Document Assistant"
+  })()
+
+  const initials = user?.full_name
+    ? user.full_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+    : user?.email?.[0]?.toUpperCase() ?? "U"
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div className="h-16 flex items-center px-6 border-b border-gray-200">
-          <span className="text-xl font-bold text-gray-900">AI Assistant</span>
-        </div>
-        <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
-          <Link to="/" className="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-            <Home className="w-5 h-5 mr-3" />
-            Dashboard
-          </Link>
-          <Link to="/workspaces" className="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-            <FolderOpen className="w-5 h-5 mr-3" />
-            Workspaces
-          </Link>
-          <Link to="/settings" className="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-            <Settings className="w-5 h-5 mr-3" />
-            Settings
-          </Link>
-        </nav>
-        <div className="p-4 border-t border-gray-200">
-          <button 
-            onClick={handleLogout}
-            className="flex items-center w-full px-3 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-md transition-colors"
-          >
-            <LogOut className="w-5 h-5 mr-3" />
-            Sign Out
-          </button>
-        </div>
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-950 overflow-hidden">
+
+      {/* ── Mobile Overlay ── */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* ── Sidebar ─────────────────────────────────────────────
+          Desktop: always visible (w-64, static)
+          Mobile:  slide-in drawer from left (fixed, z-40)
+      ──────────────────────────────────────────────────────── */}
+      <div className={`
+        fixed inset-y-0 left-0 z-40 h-full
+        transform transition-transform duration-300 ease-in-out
+        md:relative md:translate-x-0 md:z-auto
+        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+      `}>
+        <Sidebar onClose={() => setSidebarOpen(false)} />
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8">
-          <h1 className="text-lg font-semibold text-gray-800">Overview</h1>
-          <div className="flex items-center space-x-4">
-             {/* User Avatar Placeholder */}
-             <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm">
-                U
-             </div>
+      {/* ── Main Content ── */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+        {/* ── Top Header ── */}
+        <header className="flex-shrink-0 h-14 md:h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 md:px-6 gap-4">
+          {/* Hamburger — mobile only */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="md:hidden p-2 -ml-1 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              aria-label="Open menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <h1 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white truncate">
+              {pageTitle}
+            </h1>
+          </div>
+
+          {/* Right side */}
+          <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+            <button className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative">
+              <Bell className="w-5 h-5" />
+            </button>
+            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+              {initials}
+            </div>
+            {user?.full_name && (
+              <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-gray-300 truncate max-w-[120px]">
+                {user.full_name}
+              </span>
+            )}
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto p-8">
+
+        {/* ── Page Content ── */}
+        <main className="flex-1 overflow-y-auto">
           <Outlet />
         </main>
       </div>

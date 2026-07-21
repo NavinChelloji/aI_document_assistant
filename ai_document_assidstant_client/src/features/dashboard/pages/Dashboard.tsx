@@ -150,7 +150,7 @@ export const Dashboard = () => {
   const colors = ["bg-red-100 text-red-600", "bg-green-100 text-green-600", "bg-teal-100 text-teal-600", "bg-blue-100 text-blue-600", "bg-purple-100 text-purple-600", "bg-orange-100 text-orange-600"];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
       {showCreate && (
         <CreateWorkspaceModal
           onClose={() => setShowCreate(false)}
@@ -159,16 +159,16 @@ export const Dashboard = () => {
       )}
 
       {/* Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             Welcome back! <span>👋</span>
           </h2>
-          <p className="text-gray-500 mt-1">Here's what's happening with your documents.</p>
+          <p className="text-gray-500 mt-1 text-sm sm:text-base">Here's what's happening with your documents.</p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium text-sm transition-colors shadow-sm"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium text-sm transition-colors shadow-sm w-full sm:w-auto"
         >
           <Plus className="w-4 h-4" /> New Workspace
         </button>
@@ -181,7 +181,7 @@ export const Dashboard = () => {
       )}
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[
           { icon: Folder, label: "Workspaces", value: isLoading ? "—" : workspaces.length, color: "bg-purple-100 text-purple-600" },
           { icon: FileText, label: "Documents", value: isLoading ? "—" : recentDocs.length, color: "bg-blue-100 text-blue-600" },
@@ -207,7 +207,7 @@ export const Dashboard = () => {
           </Link>
         </div>
         {isLoading ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="h-20 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
             ))}
@@ -221,7 +221,7 @@ export const Dashboard = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {workspaces.slice(0, 4).map((ws, i) => (
               <Link key={ws.id} to={`/workspace/${ws.id}`} className="group relative">
                 <div className="flex items-center gap-3 p-4 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800 transition-all">

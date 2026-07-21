@@ -73,14 +73,14 @@ export const Upload = ({ workspaceId, onUploadSuccess }: Props) => {
   const hasPending = files.some((f) => f.status === "idle" || f.status === "error");
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-4">
+    <div className="w-full max-w-2xl mx-auto space-y-3 sm:space-y-4">
       {/* Drop Zone */}
       <div
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
-        className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all ${
+        className={`border-2 border-dashed rounded-2xl p-7 sm:p-10 text-center cursor-pointer transition-all ${
           isDragging
             ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 scale-[1.01]"
             : "border-gray-200 dark:border-gray-700 hover:border-blue-400 hover:bg-blue-50/30 dark:hover:bg-blue-900/10 bg-gray-50 dark:bg-gray-800/30"
@@ -99,10 +99,10 @@ export const Upload = ({ workspaceId, onUploadSuccess }: Props) => {
             <UploadIcon className="w-8 h-8" />
           </div>
           <div>
-            <p className="text-base font-semibold text-gray-900 dark:text-white">
+            <p className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white">
               {isDragging ? "Drop files here" : "Drag & drop files here"}
             </p>
-            <p className="text-sm text-gray-500 mt-1">or <span className="text-blue-600 font-medium">browse</span> — PDF, DOCX, TXT supported</p>
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">or <span className="text-blue-600 font-medium">browse</span> — PDF, DOCX, TXT supported</p>
           </div>
         </div>
       </div>
@@ -165,7 +165,7 @@ export const Upload = ({ workspaceId, onUploadSuccess }: Props) => {
 
       {/* Action Button */}
       {files.length > 0 && (
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           {!allDone && (
             <button
               onClick={uploadAll}
@@ -187,7 +187,7 @@ export const Upload = ({ workspaceId, onUploadSuccess }: Props) => {
           <button
             onClick={() => setFiles([])}
             disabled={isUploadingAll}
-            className="px-4 py-3 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+            className="w-full sm:w-auto px-4 py-3 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
           >
             Clear All
           </button>
