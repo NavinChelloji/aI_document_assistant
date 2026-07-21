@@ -1,13 +1,26 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface AuthState {
   isAuthenticated: boolean;
-  login: () => void;
+  user: { email: string; full_name?: string } | null;
+  login: (user?: { email: string; full_name?: string }) => void;
   logout: () => void;
+  setUser: (user: { email: string; full_name?: string }) => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  isAuthenticated: false, // In a real app, this might initialize based on checking an endpoint like /api/users/me
-  login: () => set({ isAuthenticated: true }),
-  logout: () => set({ isAuthenticated: false }),
-}));
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      isAuthenticated: false,
+      user: null,
+      login: (user) => set({ isAuthenticated: true, user: user ?? null }),
+      logout: () => set({ isAuthenticated: false, user: null }),
+      setUser: (user) => set({ user }),
+    }),
+    {
+      name: 'auth-storage',
+      partialize: (state) => ({ isAuthenticated: state.isAuthenticated, user: state.user }),
+    }
+  )
+);

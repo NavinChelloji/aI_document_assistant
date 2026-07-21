@@ -98,11 +98,10 @@ FastAPI Backend
 
 ```text
 
-frontend/
+src/
 │
-├── public/
 │
-├── src/
+|
 │
 ├── assets/
 │   ├── images/

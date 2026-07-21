@@ -3,8 +3,10 @@ from uuid import UUID
 from fastapi import UploadFile, HTTPException, status, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import join
 
 from app.database.models.document import Document
+from app.database.models.workspace import Workspace
 from app.api.workspaces.service import get_workspace
 from app.storage.local_storage import save_upload_file, delete_file
 from app.background_jobs.document_indexing import index_document_task
@@ -49,9 +51,18 @@ async def get_documents(db: AsyncSession, workspace_id: UUID, user_id: UUID) -> 
     result = await db.execute(select(Document).where(Document.workspace_id == workspace_id))
     return list(result.scalars().all())
 
+async def get_all_documents(db: AsyncSession, user_id: UUID) -> List[Document]:
+    """Fetch all documents across all workspaces owned by the user."""
+    stmt = (
+        select(Document)
+        .join(Workspace, Document.workspace_id == Workspace.id)
+        .where(Workspace.user_id == user_id)
+        .order_by(Document.created_at.desc())
+    )
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
+
 async def get_document(db: AsyncSession, document_id: UUID, user_id: UUID) -> Document:
-    # Need to join with Workspace to ensure user owns it
-    # For simplicity, fetch doc, then validate workspace
     result = await db.execute(select(Document).where(Document.id == document_id))
     document = result.scalars().first()
     

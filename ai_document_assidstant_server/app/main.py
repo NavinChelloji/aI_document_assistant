@@ -8,6 +8,7 @@ from app.api.users import routes as users_routes
 from app.api.workspaces import routes as workspaces_routes
 from app.api.documents import routes as documents_routes
 from app.api.chat import routes as chat_routes
+from app.api.settings import routes as settings_routes
 from app.config.settings import get_settings
 from app.utils.response import error_response, success_response
 
@@ -22,7 +23,7 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"], # Specific origins required when credentials=True
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -39,7 +40,6 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    # In production, avoid leaking sensitive exception details
     return error_response(message="An unexpected error occurred.", status_code=500)
 
 # Include Routers
@@ -49,6 +49,7 @@ app.include_router(users_routes.router, prefix="/api/users", tags=["Users"])
 app.include_router(workspaces_routes.router, prefix="/api/workspaces", tags=["Workspaces"])
 app.include_router(documents_routes.router, prefix="/api/documents", tags=["Documents"])
 app.include_router(chat_routes.router, prefix="/api/chat", tags=["Chat"])
+app.include_router(settings_routes.router, prefix="/api/settings", tags=["Settings"])
 
 @app.get("/")
 async def root():

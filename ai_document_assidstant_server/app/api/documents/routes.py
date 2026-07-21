@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, UploadFile, File, Form, status, Backgrou
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.documents.schema import DocumentResponse
-from app.api.documents.service import upload_document, get_documents, get_document, delete_document_service
+from app.api.documents.service import upload_document, get_documents, get_document, delete_document_service, get_all_documents
 from app.database.models.user import User
 from app.database.session import get_db_session
 from app.security.auth_dependency import get_current_user
@@ -22,6 +22,15 @@ async def upload_document_route(
 ):
     document = await upload_document(db, workspace_id, current_user.id, file, background_tasks)
     return success_response(data=document, message="Document uploaded successfully")
+
+@router.get("/all", response_model=StandardResponse[List[DocumentResponse]])
+async def list_all_documents(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session)
+):
+    """Return all documents across all workspaces owned by the current user."""
+    documents = await get_all_documents(db, current_user.id)
+    return success_response(data=documents, message="Documents retrieved successfully")
 
 @router.get("/workspace/{workspace_id}", response_model=StandardResponse[List[DocumentResponse]])
 async def list_documents(
