@@ -189,7 +189,7 @@ export const WorkspacesList = () => {
   );
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {showCreate && (
         <WorkspaceModal onClose={() => setShowCreate(false)} onSaved={(ws) => addWorkspace(ws)} />
       )}
@@ -210,21 +210,21 @@ export const WorkspacesList = () => {
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Workspaces</h1>
-          <p className="text-gray-500 mt-1">{workspaces.length} workspace{workspaces.length !== 1 ? "s" : ""}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Workspaces</h1>
+          <p className="text-gray-500 mt-1 text-sm sm:text-base">{workspaces.length} workspace{workspaces.length !== 1 ? "s" : ""}</p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium text-sm transition-colors shadow-sm"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium text-sm transition-colors shadow-sm w-full sm:w-auto"
         >
           <Plus className="w-4 h-4" /> New Workspace
         </button>
       </div>
 
       {/* Search */}
-      <div className="relative mb-6 max-w-md">
+      <div className="relative mb-5 sm:mb-6 w-full sm:max-w-md">
         <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
