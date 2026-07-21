@@ -29,8 +29,8 @@ export const ChatMessage = ({ message }: { message: Message }) => {
               {message.citations.map((cit, idx) => (
                 <div key={idx} className="flex items-center text-xs bg-gray-50 px-2.5 py-1.5 rounded-md border border-gray-200 text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors">
                   <FileText className="w-3.5 h-3.5 mr-1.5 text-gray-400" />
-                  <span className="truncate max-w-[150px]">{cit.documentName}</span>
-                  <span className="ml-1 text-gray-400 border-l border-gray-300 pl-1">p. {cit.pageNumber}</span>
+                  <span className="truncate max-w-[150px]">{cit.document_name}</span>
+                  <span className="ml-1 text-gray-400 border-l border-gray-300 pl-1">p. {cit.page_number}</span>
                 </div>
               ))}
             </div>

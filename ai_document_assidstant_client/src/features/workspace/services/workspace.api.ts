@@ -7,17 +7,26 @@ export const workspaceService = {
     return response.data;
   },
 
-  createWorkspace: async (data: { name: string, description?: string }, signal?: AbortSignal): Promise<Workspace> => {
+  createWorkspace: async (data: { name: string; description?: string }, signal?: AbortSignal): Promise<Workspace> => {
     const response = await apiClient.post("/api/workspaces", data, { signal });
     return response.data;
   },
 
-  getWorkspace: async (id: number, signal?: AbortSignal): Promise<Workspace> => {
+  getWorkspace: async (id: string, signal?: AbortSignal): Promise<Workspace> => {
     const response = await apiClient.get(`/api/workspaces/${id}`, { signal });
     return response.data;
   },
 
-  deleteWorkspace: async (id: number, signal?: AbortSignal): Promise<void> => {
+  updateWorkspace: async (
+    id: string,
+    data: { name?: string; description?: string },
+    signal?: AbortSignal
+  ): Promise<Workspace> => {
+    const response = await apiClient.put(`/api/workspaces/${id}`, data, { signal });
+    return response.data;
+  },
+
+  deleteWorkspace: async (id: string, signal?: AbortSignal): Promise<void> => {
     await apiClient.delete(`/api/workspaces/${id}`, { signal });
-  }
+  },
 };

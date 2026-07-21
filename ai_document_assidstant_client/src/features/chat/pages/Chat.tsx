@@ -7,7 +7,7 @@ import { Button } from "../../../ui/button/Button";
 import { Spinner } from "../../../ui/spinner/Spinner";
 import { useAbortController } from "../../../hooks/useAbortController";
 
-export const Chat = ({ workspaceId }: { workspaceId: number }) => {
+export const Chat = ({ workspaceId }: { workspaceId: string }) => {
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
@@ -67,9 +67,9 @@ export const Chat = ({ workspaceId }: { workspaceId: number }) => {
     setError(null);
     setIsSending(true);
 
-    // Optimistically add user message (with a temporary negative ID)
+    // Optimistically add user message (with a temporary string ID)
     addMessage(activeSessionId, {
-      id: -Date.now(),
+      id: `temp-${Date.now()}`,
       session_id: activeSessionId,
       content: userMessageContent,
       role: 'user',

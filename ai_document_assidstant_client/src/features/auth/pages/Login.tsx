@@ -32,9 +32,9 @@ export const Login = () => {
     setIsLoading(true);
 
     try {
-      await authService.login(data, getSignal());
-      login(); // Update global auth state
-      navigate("/"); // Redirect to dashboard
+      const result = await authService.login(data, getSignal());
+      login({ email: data.email, full_name: result?.full_name });
+      navigate("/dashboard");
     } catch (err: any) {
       if (err.name !== "CanceledError") {
         setError(err.response?.data?.detail || "Failed to log in. Please check your credentials.");
