@@ -1,0 +1,6 @@
+[submodule "ai_document_assistant_client"]
+	path = ai_document_assistant_client
+	url = https://github.com/NavinChelloji/ai_document_assistant_client.git
+[submodule "ai_document_assistant_server"]
+	path = ai_document_assistant_server
+	url = https://github.com/NavinChelloji/ai_document_assistant_server.git
