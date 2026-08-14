@@ -353,7 +353,7 @@ npm install
 Install Backend
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-prod.txt
 ```
 
 Run Backend
